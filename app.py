@@ -19,38 +19,26 @@ st.subheader("📝 Query SQL")
 query_input = st.text_area(
     "Digite sua query SQL:",
     height=100,
-    placeholder="SELECT * FROM tabela WHERE condicao;"
+    value="SELECT Alunos.nome, Cursos.nome, Professores.nome FROM Alunos INNER JOIN Cursos ON Alunos.curso_id = Cursos.id INNER JOIN Professores ON Cursos.professor_id = Professores.id WHERE Cursos.nome = 'Banco de Dados';"
 )
 
 # Botão para processar
-col1, col2, col3 = st.columns([1, 1, 4])
-with col1:
-    processar = st.button("🚀 Converter", type="primary", use_container_width=True)
-with col2:
-    limpar = st.button("🗑️ Limpar", use_container_width=True)
-
-if limpar:
-    st.rerun()
+processar = st.button("🚀 Converter", type="primary", use_container_width=True)
 
 # Processar a query
 if processar and query_input:
     parsed_query = Parser().parse(query_input.upper())
 
     if parsed_query:
-        st.text("Query Parseada:")
+        st.subheader("📊 Query Detalhada:")
         st.json(parsed_query)
-        
-        algebra_relacional = AlgebraRelacional(parsed_query)
 
-        expressao_algebra = algebra_relacional.converter()
-        st.text("Álgebra Relacional:")
-        st.text(expressao_algebra)
-        
+        st.subheader("⚙️ Conversão para Álgebra Relacional:")
+        algebra_relacional = AlgebraRelacional(parsed_query)
         detalhamento = algebra_relacional.converter_detalhado()
-        st.text("Detalhamento da Conversão:")
-        # Itera até o penúltimo item (exclui o último)
         items = list(detalhamento.items())
         for key, value in items[:-1]:
-            st.text(key + ": " + value)
+            st.markdown(f"**{key}**")
+            st.code(value)
     else:
         st.text("Falha ao parsear a query.")
