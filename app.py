@@ -37,14 +37,18 @@ if processar and query_input:
     parsed_query = Parser().parse(query_input.upper())
 
     if parsed_query:
-        st.text("Query Parseada: {}".format(parsed_query))
+        st.text("Query Parseada:")
+        st.json(parsed_query)
         
         algebra_relacional = AlgebraRelacional(parsed_query)
 
         expressao_algebra = algebra_relacional.converter()
-        st.text("Álgebra Relacional: {}".format(expressao_algebra))
+        st.text("Álgebra Relacional:")
+        st.text(expressao_algebra)
 
         detalhamento = algebra_relacional.converter_detalhado()
-        st.text("Detalhamento da Conversão: {}".format(detalhamento))
+        st.text("Detalhamento da Conversão:")
+        st.text(detalhamento)
+        
     else:
         st.text("Falha ao parsear a query.")
