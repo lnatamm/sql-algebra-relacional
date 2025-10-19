@@ -45,10 +45,12 @@ if processar and query_input:
         expressao_algebra = algebra_relacional.converter()
         st.text("Álgebra Relacional:")
         st.text(expressao_algebra)
-
+        
         detalhamento = algebra_relacional.converter_detalhado()
         st.text("Detalhamento da Conversão:")
-        st.text(detalhamento)
-        
+        # Itera até o penúltimo item (exclui o último)
+        items = list(detalhamento.items())
+        for key, value in items[:-1]:
+            st.text(key + ": " + value)
     else:
         st.text("Falha ao parsear a query.")
