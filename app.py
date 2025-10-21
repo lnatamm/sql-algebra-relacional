@@ -1,6 +1,7 @@
 import streamlit as st
 from classes.parser import Parser
 from classes.algebra_relacional import AlgebraRelacional
+from classes.grafo_execucao import GrafoExecucao
 
 # Configuração da página
 st.set_page_config(
@@ -40,5 +41,28 @@ if processar and query_input:
         for key, value in items[:-1]:
             st.markdown(f"**{key}**")
             st.code(value)
+
+        gerador_grafo = GrafoExecucao(parsed_query)
+            
+        # Árvore ASCII
+        print(gerador_grafo.gerar_ascii_tree())
+        
+        # Ordem de execução
+        print("\nOrdem de Execução:")
+        ordem = gerador_grafo.gerar_ordem_execucao()
+        for i, (op, desc) in enumerate(ordem, 1):
+            print(f"  {i}. [{op:8}] {desc}")
+        
+        # Estatísticas
+        print("\nEstatísticas:")
+        stats = gerador_grafo.exibir_estatisticas()
+        for chave, valor in stats.items():
+            print(f"  • {chave}: {valor}")
+        
+        # Tentar gerar grafo visual
+        nome_arquivo = "grafo_query"
+        # output = gerador_grafo.gerar_grafo(formato='png', nome_arquivo=nome_arquivo)
+        gerador_grafo.gerar_mermaid(direcao='TB', incluir_legenda=True)
+        gerador_grafo.gerar_grafo_networkx(nome_arquivo=f"networkx_query.png")
     else:
         st.text("Falha ao parsear a query.")
