@@ -1,13 +1,4 @@
-# Dependências do projeto SQL para Álgebra Relacional
-
-# Opcional: Para geração de grafos visuais
-# Requer também a instalação do executável Graphviz do sistema
-# Windows: https://graphviz.org/download/
-# Linux: sudo apt-get install graphviz
-# Mac: brew install graphviz
 graphviz==0.21
-
-# Alternativas sem executável externo (opcionais):
-rich==14.2.0           # Árvore colorida no terminal
-networkx==3.5          # Grafo em PNG (puro Python)
-matplotlib==3.10.7        # Renderização do PNG com NetworkX
+rich==14.2.0
+networkx==3.5
+matplotlib==3.10.7

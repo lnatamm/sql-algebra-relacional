@@ -1,5 +1,5 @@
 import re
-from consts import PADRAO, PALAVRAS_RESERVADAS
+from consts import PADRAO, PALAVRAS_RESERVADAS, TABELAS, COLUNAS
  
 class Parser:
     
@@ -25,6 +25,25 @@ class Parser:
         else:
             return False
     
+    def _validade_table_and_columns(self, sentence: str):
+        table_valid = False
+        column_valid = False
+        for word in sentence.split(" "):
+            if word == "" or word.upper() in {"AND", "OR", "=", "<", ">", "<=", ">=", "!="}:
+                continue
+            left_word = word.split(".")[0] if "." in word else word
+            right_word = word.split(".")[1] if "." in word else None
+            
+            for tabela in TABELAS:
+                if (left_word.upper() == tabela.upper()) or left_word is None:
+                    table_valid = True
+                    break
+            for coluna in COLUNAS:
+                if (right_word and coluna.upper()) or right_word is None:
+                    column_valid = True
+                    break
+        if not table_valid or not column_valid:
+            raise ValueError("Tabela ou coluna inválida encontrada.")
 
     def parse(self, query: str) -> dict | None:
 
@@ -107,6 +126,13 @@ class Parser:
             if not where_clause:
                 print("❌ Condição WHERE está vazia.")
                 return None
+
+        for select in colunas:
+            self._validade_table_and_columns(select)
+        for join in inner_joins:
+            self._validade_table_and_columns(join["condicao"])
+            self._validade_table_and_columns(join["tabela"])
+        self._validade_table_and_columns(where_clause)
 
         print("✅ Query sintaticamente válida.")
         return {
