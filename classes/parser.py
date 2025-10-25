@@ -26,6 +26,8 @@ class Parser:
             return False
     
     def _validade_table_and_columns(self, sentence: str):
+        if sentence is None:
+            return
         table_valid = False
         column_valid = False
         for word in sentence.split(" "):
