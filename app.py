@@ -8,6 +8,7 @@ from classes.heuristica_reducao_tuplas import HeuristicaReducaoTuplas
 st.set_page_config(
     page_title="SQL para Álgebra Relacional",
     page_icon="🔄",
+    layout="wide"
 )
 
 # Título principal
@@ -58,25 +59,26 @@ if processar and query_input:
         
         # Seção 2: Álgebra Relacional Final
         st.header("2. Álgebra Relacional Final")
-        tab3, tab4 = st.tabs(["Query Original", "Query com Heurística"])
         
-        with tab3:
-            algebra_relacional = AlgebraRelacional(parsed_query)
-            algebra_final = algebra_relacional.converter()
-            st.code(algebra_final, language="text")
+        st.subheader("Query Original")
+        algebra_relacional = AlgebraRelacional(parsed_query)
+        algebra_final = algebra_relacional.converter()
+        st.code(algebra_final, language="text")
         
-        with tab4:
-            algebra_relacional_otimizada = AlgebraRelacional(parsed_query_otimizada)
-            algebra_final_otimizada = algebra_relacional_otimizada.converter()
-            st.code(algebra_final_otimizada, language="text")
+        st.subheader("Query com Heurística")
+        algebra_relacional_otimizada = AlgebraRelacional(parsed_query_otimizada)
+        algebra_final_otimizada = algebra_relacional_otimizada.converter()
+        st.code(algebra_final_otimizada, language="text")
         
         st.markdown("---")
         
         # Seção 3: Grafo de Execução
         st.header("3. Grafo de Execução")
-        tab5, tab6 = st.tabs(["Query Original", "Query com Heurística"])
         
-        with tab5:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.subheader("Query Original")
             gerador_grafo = GrafoExecucao(parsed_query)
             try:
                 nome_arquivo = "networkx_query_original.png"
@@ -88,7 +90,8 @@ if processar and query_input:
             except Exception as e:
                 st.error(f"Erro ao gerar grafo: {str(e)}")
         
-        with tab6:
+        with col2:
+            st.subheader("Query com Heurística")
             gerador_grafo_otimizado = GrafoExecucao(parsed_query_otimizada)
             try:
                 nome_arquivo_otimizado = "networkx_query_otimizada.png"
