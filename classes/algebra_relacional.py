@@ -52,7 +52,14 @@ class AlgebraRelacional:
         for join in self.inner_joins:
             tabela = join['tabela']
             condicao = self._formatar_condicao(join['condicao'])
-            resultado = f"({resultado} ⋈_{{{condicao}}} {tabela})"
+            
+            # Se tem where_antecipado, aplica seleção antes da junção
+            if 'where_antecipado' in join:
+                condicao_antecipada = self._formatar_condicao(join['where_antecipado'])
+                tabela_com_selecao = f"σ_{{{condicao_antecipada}}}({tabela})"
+                resultado = f"({resultado} ⋈_{{{condicao}}} {tabela_com_selecao})"
+            else:
+                resultado = f"({resultado} ⋈_{{{condicao}}} {tabela})"
         
         return resultado
     

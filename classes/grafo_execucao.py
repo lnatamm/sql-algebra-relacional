@@ -342,20 +342,32 @@ class GrafoExecucao:
         ultimo = n_from
 
         for join in self.inner_joins:
-            n_tab = next_id(); add_node(n_tab, join['tabela'], 'tabela')
-            n_join = next_id(); add_node(n_join, f"⋈ {join['condicao']}", 'juncao')
+            n_tab = next_id()
+            add_node(n_tab, join['tabela'], 'tabela')
+            
+            # Se tem where_antecipado, adiciona nó de seleção antes da junção
+            if 'where_antecipado' in join:
+                n_sel_antecipada = next_id()
+                add_node(n_sel_antecipada, f"σ {join['where_antecipado']}", 'selecao')
+                add_edge(n_tab, n_sel_antecipada)
+                n_tab = n_sel_antecipada  # Atualiza para usar o nó de seleção
+            
+            n_join = next_id()
+            add_node(n_join, f"⋈ {join['condicao']}", 'juncao')
             add_edge(ultimo, n_join)
             add_edge(n_tab, n_join)
             ultimo = n_join
 
         if self.where_clause:
-            n_sel = next_id(); add_node(n_sel, f"σ {self.where_clause}", 'selecao')
+            n_sel = next_id()
+            add_node(n_sel, f"σ {self.where_clause}", 'selecao')
             add_edge(ultimo, n_sel)
             ultimo = n_sel
 
         if self.select_cols != ['*']:
             cols = ', '.join(self.select_cols)
-            n_proj = next_id(); add_node(n_proj, f"π {cols}", 'projecao')
+            n_proj = next_id()
+            add_node(n_proj, f"π {cols}", 'projecao')
             add_edge(ultimo, n_proj)
             ultimo = n_proj
 
@@ -372,10 +384,10 @@ class GrafoExecucao:
         node_colors = [color_map.get(G.nodes[n].get('tipo', ''), '#ffffff') for n in G.nodes]
         labels = {n: G.nodes[n].get('label', n) for n in G.nodes}
 
-        plt.figure(figsize=(8, 6))
-        nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=1200, edgecolors='#666')
+        plt.figure(figsize=(10, 8))
+        nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=1500, edgecolors='#666')
         nx.draw_networkx_edges(G, pos, arrows=True, arrowstyle='-|>', arrowsize=15, edge_color='#888')
-        nx.draw_networkx_labels(G, pos, labels, font_size=9)
+        nx.draw_networkx_labels(G, pos, labels, font_size=8)
         plt.axis('off')
 
         try:
