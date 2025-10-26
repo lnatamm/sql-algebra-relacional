@@ -11,11 +11,11 @@ st.set_page_config(
 )
 
 # Título principal
-st.title("🔄 Conversor SQL para Álgebra Relacional")
+st.title("Conversor SQL para Álgebra Relacional")
 st.markdown("---")
 
 # Área de input da query
-st.subheader("📝 Query SQL")
+st.subheader("Query SQL")
 
 default_query = (
     "SELECT Cliente.Nome, Produto.Nome, Pedido.DataPedido "
@@ -33,45 +33,38 @@ query_input = st.text_area(
 )
 
 # Botão para processar
-processar = st.button("🚀 Converter", type="primary", use_container_width=True)
+processar = st.button("Converter", type="primary", use_container_width=True)
 
 # Processar a query
 if processar and query_input:
     parsed_query = Parser().parse(query_input.upper())
 
     if parsed_query:
-        st.subheader("📊 Query Detalhada:")
+        # 1. Query Detalhada
+        st.subheader("1. Query Detalhada")
         st.json(parsed_query)
-
-        st.subheader("⚙️ Conversão para Álgebra Relacional:")
+        
+        st.markdown("---")
+        
+        # 2. Álgebra Relacional Final
+        st.subheader("2. Álgebra Relacional Final")
         algebra_relacional = AlgebraRelacional(parsed_query)
-        detalhamento = algebra_relacional.converter_detalhado()
-        items = list(detalhamento.items())
-        for key, value in items[:-1]:
-            st.markdown(f"**{key}**")
-            st.code(value)
-
+        algebra_final = algebra_relacional.converter()
+        st.code(algebra_final)
+        
+        st.markdown("---")
+        
+        # 3. Grafo de Execução
+        st.subheader("3. Grafo de Execução")
         gerador_grafo = GrafoExecucao(parsed_query)
-            
-        # Árvore ASCII
-        print(gerador_grafo.gerar_ascii_tree())
-        
-        # Ordem de execução
-        print("\nOrdem de Execução:")
-        ordem = gerador_grafo.gerar_ordem_execucao()
-        for i, (op, desc) in enumerate(ordem, 1):
-            print(f"  {i}. [{op:8}] {desc}")
-        
-        # Estatísticas
-        print("\nEstatísticas:")
-        stats = gerador_grafo.exibir_estatisticas()
-        for chave, valor in stats.items():
-            print(f"  • {chave}: {valor}")
-        
-        # Tentar gerar grafo visual
-        nome_arquivo = "grafo_query"
-        # output = gerador_grafo.gerar_grafo(formato='png', nome_arquivo=nome_arquivo)
-        gerador_grafo.gerar_mermaid(direcao='TB', incluir_legenda=True)
-        gerador_grafo.gerar_grafo_networkx(nome_arquivo=f"networkx_query.png")
+        try:
+            nome_arquivo = "networkx_query.png"
+            caminho_grafo = gerador_grafo.gerar_grafo_networkx(nome_arquivo=nome_arquivo)
+            st.image(caminho_grafo, caption="Grafo de Execução da Query", use_container_width=True)
+        except ImportError as e:
+            st.error(f"Erro: {str(e)}")
+            st.info("Execute: `pip install networkx matplotlib`")
+        except Exception as e:
+            st.error(f"Erro ao gerar grafo: {str(e)}")
     else:
-        st.text("Falha ao parsear a query.")
+        st.error("Falha ao parsear a query.")
