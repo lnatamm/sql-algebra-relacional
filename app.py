@@ -17,10 +17,19 @@ st.markdown("---")
 # Área de input da query
 st.subheader("📝 Query SQL")
 
+default_query = (
+    "SELECT Cliente.Nome, Produto.Nome, Pedido.DataPedido "
+    "FROM Cliente "
+    "INNER JOIN Pedido ON Cliente.idCliente = Pedido.Cliente_idCliente "
+    "INNER JOIN Pedido_has_Produto ON Pedido.idPedido = Pedido_has_Produto.Pedido_idPedido "
+    "INNER JOIN Produto ON Pedido_has_Produto.Produto_idProduto = Produto.idProduto "
+    "WHERE Produto.Preco > 100 AND Cliente.Nome LIKE 'A%';"
+)
+
 query_input = st.text_area(
     "Digite sua query SQL:",
     height=100,
-    value="SELECT Alunos.nome, Cursos.nome, Professores.nome FROM Alunos INNER JOIN Cursos ON Alunos.curso_id = Cursos.id INNER JOIN Professores ON Cursos.professor_id = Professores.id WHERE Cursos.nome = 'Banco de Dados';"
+    value=default_query
 )
 
 # Botão para processar
