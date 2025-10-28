@@ -345,6 +345,14 @@ class GrafoExecucao:
             n_tab = next_id()
             add_node(n_tab, join['tabela'], 'tabela')
             
+            # Se tem projecao_antecipada, adiciona nó de projeção
+            if 'projecao_antecipada' in join:
+                n_proj_antecipada = next_id()
+                cols_proj = ', '.join(join['projecao_antecipada'])
+                add_node(n_proj_antecipada, f"π {cols_proj}", 'projecao')
+                add_edge(n_tab, n_proj_antecipada)
+                n_tab = n_proj_antecipada  # Atualiza para usar o nó de projeção
+            
             # Se tem where_antecipado, adiciona nó de seleção antes da junção
             if 'where_antecipado' in join:
                 n_sel_antecipada = next_id()

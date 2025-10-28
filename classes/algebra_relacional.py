@@ -53,13 +53,20 @@ class AlgebraRelacional:
             tabela = join['tabela']
             condicao = self._formatar_condicao(join['condicao'])
             
+            # Aplicar projeção antecipada se existir (heurística de redução de atributos)
+            if 'projecao_antecipada' in join:
+                colunas_proj = ', '.join(join['projecao_antecipada'])
+                tabela_base = f"π_{{{colunas_proj}}}({tabela})"
+            else:
+                tabela_base = tabela
+            
             # Se tem where_antecipado, aplica seleção antes da junção
             if 'where_antecipado' in join:
                 condicao_antecipada = self._formatar_condicao(join['where_antecipado'])
-                tabela_com_selecao = f"σ_{{{condicao_antecipada}}}({tabela})"
+                tabela_com_selecao = f"σ_{{{condicao_antecipada}}}({tabela_base})"
                 resultado = f"({resultado} ⋈_{{{condicao}}} {tabela_com_selecao})"
             else:
-                resultado = f"({resultado} ⋈_{{{condicao}}} {tabela})"
+                resultado = f"({resultado} ⋈_{{{condicao}}} {tabela_base})"
         
         return resultado
     
@@ -180,11 +187,11 @@ if __name__ == "__main__":
     print("CONVERSÃO DETALHADA:")
     print("-" * 80)
     detalhado = conversor.converter_detalhado()
-    print(f"\n1. Junções (⋈):")
+    print("\n1. Junções (⋈):")
     print(f"   {detalhado['etapa_1_juncoes']}")
-    print(f"\n2. Seleção (σ) - WHERE:")
+    print("\n2. Seleção (σ) - WHERE:")
     print(f"   {detalhado['etapa_2_selecao']}")
-    print(f"\n3. Projeção (π) - SELECT:")
+    print("\n3. Projeção (π) - SELECT:")
     print(f"   {detalhado['etapa_3_projecao']}")
     
     print("\n" + "=" * 80)
