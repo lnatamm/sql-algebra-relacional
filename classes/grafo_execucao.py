@@ -340,6 +340,14 @@ class GrafoExecucao:
         n_from = next_id()
         add_node(n_from, self.from_table, 'tabela')
         ultimo = n_from
+        
+        # Adicionar seleção antecipada para a tabela FROM (se existir)
+        from_where_antecipado = self.parsed.get('FROM_WHERE_ANTECIPADO', None)
+        if from_where_antecipado:
+            n_sel_from = next_id()
+            add_node(n_sel_from, f"σ {from_where_antecipado}", 'selecao')
+            add_edge(ultimo, n_sel_from)
+            ultimo = n_sel_from
 
         for join in self.inner_joins:
             n_tab = next_id()

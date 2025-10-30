@@ -65,10 +65,11 @@ class HeuristicaReducaoTuplas:
         colunas_por_tabela = self._extrair_colunas_por_tabela(select_cols)
         colunas_por_tabela = self._adicionar_colunas_join(colunas_por_tabela, inner_joins)
         
+        # Aplicar WHERE antecipado na tabela FROM
         from_otimizado = from_table
-        where_from = None
+        where_from_antecipado = None
         if from_table in condicoes_por_tabela:
-            where_from = ' AND '.join(condicoes_por_tabela[from_table])
+            where_from_antecipado = ' AND '.join(condicoes_por_tabela[from_table])
         
         joins_otimizados = []
         for join in inner_joins:
@@ -86,15 +87,19 @@ class HeuristicaReducaoTuplas:
             
             joins_otimizados.append(join_otimizado)
         
+        # Construir o parsed otimizado
         parsed_otimizado = {
             'SELECT': select_cols,
             'FROM': from_otimizado,
             'INNER_JOIN': joins_otimizados,
-            'WHERE': where_from,
             '_otimizacao': {
                 'condicoes_por_tabela': condicoes_por_tabela,
                 'colunas_por_tabela': colunas_por_tabela
             }
         }
+        
+        # Adicionar where_antecipado ao FROM se houver condições para essa tabela
+        if where_from_antecipado:
+            parsed_otimizado['FROM_WHERE_ANTECIPADO'] = where_from_antecipado
         
         return parsed_otimizado
