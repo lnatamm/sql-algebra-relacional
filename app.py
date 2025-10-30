@@ -108,7 +108,7 @@ if processar and query_input:
         algebra_final_tuplas = algebra_relacional_tuplas.converter()
         st.code(algebra_final_tuplas, language="text")
 
-        st.subheader("Com Ambas Heurísticas")
+        st.subheader("Com Heurística de Redução de Atributos")
         algebra_relacional_ambas = AlgebraRelacional(parsed_query_com_ambas)
         algebra_final_ambas = algebra_relacional_ambas.converter()
         st.code(algebra_final_ambas, language="text")
@@ -157,12 +157,12 @@ if processar and query_input:
                 st.error(f"Erro ao gerar grafo: {str(e)}")
 
         with col3:
-            st.subheader("Com Ambas Heurísticas")
+            st.subheader("Com Heurística de Redução de Atributos")
             gerador_grafo_ambas = GrafoExecucao(parsed_query_com_ambas)
             try:
                 nome_arquivo_ambas = "networkx_query_ambas.png"
                 caminho_grafo_ambas = gerador_grafo_ambas.gerar_grafo_networkx(nome_arquivo=nome_arquivo_ambas)
-                st.image(caminho_grafo_ambas, caption="Grafo de Execução com Ambas Heurísticas", use_container_width=True)
+                st.image(caminho_grafo_ambas, caption="Grafo de Execução com Heurística de Redução de Atributos", use_container_width=True)
             except ImportError as e:
                 st.error(f"Erro: {str(e)}")
                 st.info("Execute: `pip install networkx matplotlib`")
@@ -170,12 +170,12 @@ if processar and query_input:
                 st.error(f"Erro ao gerar grafo: {str(e)}")
 
         with col4:
-            st.subheader("Com Reordenação de Folhas")
-            gerador_grafo_reord = GrafoExecucao(parsed_query_reordenado)
+            st.subheader("Sem Produto Cartesiano")
+            gerador_grafo_semprod = GrafoExecucao(parsed_query_sem_prod)
             try:
-                nome_arquivo_reord = "networkx_query_reordenado.png"
-                caminho_grafo_reord = gerador_grafo_reord.gerar_grafo_networkx(nome_arquivo=nome_arquivo_reord)
-                st.image(caminho_grafo_reord, caption="Grafo de Execução com Reordenação de Folhas", use_container_width=True)
+                nome_arquivo_semprod = "networkx_query_semprod.png"
+                caminho_grafo_semprod = gerador_grafo_semprod.gerar_grafo_networkx(nome_arquivo=nome_arquivo_semprod)
+                st.image(caminho_grafo_semprod, caption="Grafo de Execução sem Produto Cartesiano", use_container_width=True)
             except ImportError as e:
                 st.error(f"Erro: {str(e)}")
                 st.info("Execute: `pip install networkx matplotlib`")
@@ -183,12 +183,12 @@ if processar and query_input:
                 st.error(f"Erro ao gerar grafo: {str(e)}")
 
         with col5:
-            st.subheader("Sem Produto Cartesiano")
-            gerador_grafo_semprod = GrafoExecucao(parsed_query_sem_prod)
+            st.subheader("Com Reordenação de Folhas")
+            gerador_grafo_reord = GrafoExecucao(parsed_query_reordenado)
             try:
-                nome_arquivo_semprod = "networkx_query_semprod.png"
-                caminho_grafo_semprod = gerador_grafo_semprod.gerar_grafo_networkx(nome_arquivo=nome_arquivo_semprod)
-                st.image(caminho_grafo_semprod, caption="Grafo de Execução sem Produto Cartesiano", use_container_width=True)
+                nome_arquivo_reord = "networkx_query_reordenado.png"
+                caminho_grafo_reord = gerador_grafo_reord.gerar_grafo_networkx(nome_arquivo=nome_arquivo_reord)
+                st.image(caminho_grafo_reord, caption="Grafo de Execução com Reordenação de Folhas", use_container_width=True)
             except ImportError as e:
                 st.error(f"Erro: {str(e)}")
                 st.info("Execute: `pip install networkx matplotlib`")
