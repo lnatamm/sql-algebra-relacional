@@ -141,38 +141,3 @@ class GrafoExecucao:
 
         import os
         return os.path.abspath(nome_arquivo)
-
-
-# Exemplo de uso
-if __name__ == "__main__":
-    # Exemplo do parser fornecido
-    parsed = {
-        'SELECT': ['ALUNOS.NOME', 'CURSOS.NOME', 'PROFESSORES.NOME'],
-        'FROM': 'ALUNOS',
-        'INNER_JOIN': [
-            {'tabela': 'CURSOS', 'condicao': 'ALUNOS.CURSO_ID = CURSOS.ID'},
-            {'tabela': 'PROFESSORES', 'condicao': 'CURSOS.PROFESSOR_ID = PROFESSORES.ID'}
-        ],
-        'WHERE': "CURSOS.NOME = 'BANCO DE DADOS'"
-    }
-    
-    gerador = GrafoExecucao(parsed)
-    
-    print("\n" + "=" * 80)
-    print("GRAFO DE EXECUÇÃO - ÁLGEBRA RELACIONAL")
-    print("=" * 80)
-    
-    # Tenta gerar o grafo visual
-    if NETWORKX_DISPONIVEL:
-        print("\n" + "=" * 80)
-        print("GERANDO GRAFO VISUAL...")
-        print("=" * 80)
-        try:
-            output = gerador.gerar_grafo_networkx()
-            print(f"✅ Grafo gerado com sucesso: {output}")
-        except Exception as e:
-            print(f"❌ Erro ao gerar grafo: {e}")
-    else:
-        print("\n⚠️  Para gerar grafos visuais, instale: pip install networkx matplotlib")
-    
-    print("\n" + "=" * 80)
