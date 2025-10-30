@@ -2,33 +2,27 @@ class HeuristicaReducaoAtributos:
     def __init__(self, parsed_query: dict):
         self.parsed_original = parsed_query
 
-    def _extrair_colunas_where(self, where_clause: str) -> list:
+    def _extrair_colunas_necessarias(self, texto: str) -> list:
+        """Extrai todas as colunas (Tabela.Coluna) de um texto"""
         colunas = []
-        if not where_clause:
+        if not texto:
             return colunas
         
-        for parte in where_clause.replace('(', '').replace(')', '').split():
-            if '.' in parte and not any(op in parte for op in ['=', '>', '<', '!', 'LIKE']):
-                colunas.append(parte.strip())
-        return colunas
-
-    def _extrair_colunas_join(self, inner_joins: list) -> list:
-        colunas = []
-        for join in inner_joins:
-            condicao = join['condicao']
-            # Extrair também where_antecipado se existir
-            if 'where_antecipado' in join:
-                for parte in join['where_antecipado'].replace('(', '').replace(')', '').split():
-                    if '.' in parte and not any(op in parte for op in ['=', '>', '<', '!', 'LIKE']):
-                        colunas.append(parte.strip())
-            
-            for parte in condicao.replace('(', '').replace(')', '').split('='):
-                parte = parte.strip()
-                if '.' in parte:
-                    colunas.append(parte)
+        # Remove parênteses e quebra em palavras
+        palavras = texto.replace('(', '').replace(')', '').split()
+        
+        for palavra in palavras:
+            # Se tem ponto e não é um operador, é uma coluna
+            if '.' in palavra and not any(op in palavra for op in ['=', '>', '<', '!', 'LIKE']):
+                # Remove possíveis vírgulas ou aspas
+                coluna = palavra.strip(',').strip("'").strip('"')
+                if coluna:
+                    colunas.append(coluna)
+        
         return colunas
 
     def _agrupar_por_tabela(self, colunas: list) -> dict:
+        """Agrupa colunas por tabela"""
         resultado = {}
         for col in colunas:
             if '.' in col:
@@ -39,56 +33,73 @@ class HeuristicaReducaoAtributos:
         return resultado
 
     def otimizar(self) -> dict:
+        """Otimiza a query aplicando projeções o mais cedo possível"""
         select_cols = self.parsed_original.get('SELECT', [])
         from_table = self.parsed_original.get('FROM', '')
         inner_joins = self.parsed_original.get('INNER_JOIN', [])
         where_clause = self.parsed_original.get('WHERE', None)
         from_where_antecipado = self.parsed_original.get('FROM_WHERE_ANTECIPADO', None)
 
-        colunas_select = [c for c in select_cols if '.' in c]
-        colunas_where = self._extrair_colunas_where(where_clause)
+        # Coleta todas as colunas necessárias
+        todas_colunas = []
         
-        # Extrair colunas do FROM_WHERE_ANTECIPADO
-        colunas_from_where = self._extrair_colunas_where(from_where_antecipado)
+        # Colunas do SELECT
+        for col in select_cols:
+            if '.' in col:
+                todas_colunas.append(col)
         
-        colunas_join = self._extrair_colunas_join(inner_joins)
-
-        todas_colunas = list(set(colunas_select + colunas_where + colunas_from_where + colunas_join))
+        # Colunas do WHERE principal
+        todas_colunas.extend(self._extrair_colunas_necessarias(where_clause))
+        
+        # Colunas do WHERE antecipado do FROM
+        todas_colunas.extend(self._extrair_colunas_necessarias(from_where_antecipado))
+        
+        # Colunas dos JOINs
+        for join in inner_joins:
+            # Condição do JOIN
+            todas_colunas.extend(self._extrair_colunas_necessarias(join['condicao']))
+            
+            # WHERE antecipado do JOIN
+            if 'where_antecipado' in join:
+                todas_colunas.extend(self._extrair_colunas_necessarias(join['where_antecipado']))
+        
+        # Remove duplicatas e agrupa por tabela
+        todas_colunas = list(set(todas_colunas))
         colunas_por_tabela = self._agrupar_por_tabela(todas_colunas)
 
-        # Adicionar projeções para cada join
-        joins_com_projecao = []
+        # Adiciona projeções aos JOINs
+        joins_otimizados = []
         for join in inner_joins:
             tabela = join['tabela']
-            join_atualizado = join.copy()
+            join_otimizado = {
+                'tabela': tabela,
+                'condicao': join['condicao']
+            }
             
-            # Adicionar projeção de colunas para esta tabela
+            # Preserva where_antecipado se existir
+            if 'where_antecipado' in join:
+                join_otimizado['where_antecipado'] = join['where_antecipado']
+            
+            # Adiciona projeção antecipada se houver colunas para esta tabela
             if tabela in colunas_por_tabela:
-                join_atualizado['projecao_antecipada'] = list(colunas_por_tabela[tabela])
+                join_otimizado['projecao_antecipada'] = sorted(colunas_por_tabela[tabela])
             
-            joins_com_projecao.append(join_atualizado)
+            joins_otimizados.append(join_otimizado)
 
-        # Manter estrutura compatível com outras heurísticas
+        # Constrói o resultado mantendo a estrutura padrão
         resultado = {
             'SELECT': select_cols,
             'FROM': from_table,
-            'INNER_JOIN': joins_com_projecao,
-            'WHERE': where_clause,
-            '_otimizacao_atributos': {
-                'colunas_por_tabela': {t: list(cols) for t, cols in colunas_por_tabela.items()},
-                'colunas_select': colunas_select,
-                'colunas_where': colunas_where,
-                'colunas_from_where': colunas_from_where,
-                'colunas_join': colunas_join
-            }
+            'INNER_JOIN': joins_otimizados,
+            'WHERE': where_clause
         }
         
-        # Adicionar FROM_WHERE_ANTECIPADO ao resultado se existir
+        # Preserva FROM_WHERE_ANTECIPADO se existir
         if from_where_antecipado:
             resultado['FROM_WHERE_ANTECIPADO'] = from_where_antecipado
-            
-        # Adicionar projeção antecipada para a tabela FROM se existir
+        
+        # Adiciona projeção antecipada para FROM se houver
         if from_table in colunas_por_tabela:
-            resultado['FROM_PROJECAO_ANTECIPADA'] = list(colunas_por_tabela[from_table])
+            resultado['FROM_PROJECAO_ANTECIPADA'] = sorted(colunas_por_tabela[from_table])
         
         return resultado
