@@ -43,12 +43,17 @@ class HeuristicaReducaoAtributos:
         from_table = self.parsed_original.get('FROM', '')
         inner_joins = self.parsed_original.get('INNER_JOIN', [])
         where_clause = self.parsed_original.get('WHERE', None)
+        from_where_antecipado = self.parsed_original.get('FROM_WHERE_ANTECIPADO', None)
 
         colunas_select = [c for c in select_cols if '.' in c]
         colunas_where = self._extrair_colunas_where(where_clause)
+        
+        # Extrair colunas do FROM_WHERE_ANTECIPADO
+        colunas_from_where = self._extrair_colunas_where(from_where_antecipado)
+        
         colunas_join = self._extrair_colunas_join(inner_joins)
 
-        todas_colunas = list(set(colunas_select + colunas_where + colunas_join))
+        todas_colunas = list(set(colunas_select + colunas_where + colunas_from_where + colunas_join))
         colunas_por_tabela = self._agrupar_por_tabela(todas_colunas)
 
         # Adicionar projeções para cada join
@@ -64,7 +69,7 @@ class HeuristicaReducaoAtributos:
             joins_com_projecao.append(join_atualizado)
 
         # Manter estrutura compatível com outras heurísticas
-        return {
+        resultado = {
             'SELECT': select_cols,
             'FROM': from_table,
             'INNER_JOIN': joins_com_projecao,
@@ -73,6 +78,17 @@ class HeuristicaReducaoAtributos:
                 'colunas_por_tabela': {t: list(cols) for t, cols in colunas_por_tabela.items()},
                 'colunas_select': colunas_select,
                 'colunas_where': colunas_where,
+                'colunas_from_where': colunas_from_where,
                 'colunas_join': colunas_join
             }
         }
+        
+        # Adicionar FROM_WHERE_ANTECIPADO ao resultado se existir
+        if from_where_antecipado:
+            resultado['FROM_WHERE_ANTECIPADO'] = from_where_antecipado
+            
+        # Adicionar projeção antecipada para a tabela FROM se existir
+        if from_table in colunas_por_tabela:
+            resultado['FROM_PROJECAO_ANTECIPADA'] = list(colunas_por_tabela[from_table])
+        
+        return resultado

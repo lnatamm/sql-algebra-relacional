@@ -341,6 +341,15 @@ class GrafoExecucao:
         add_node(n_from, self.from_table, 'tabela')
         ultimo = n_from
         
+        # Adicionar projeção antecipada para a tabela FROM (se existir)
+        from_projecao_antecipada = self.parsed.get('FROM_PROJECAO_ANTECIPADA', None)
+        if from_projecao_antecipada:
+            n_proj_from = next_id()
+            cols_proj = ', '.join(from_projecao_antecipada)
+            add_node(n_proj_from, f"π {cols_proj}", 'projecao')
+            add_edge(ultimo, n_proj_from)
+            ultimo = n_proj_from
+        
         # Adicionar seleção antecipada para a tabela FROM (se existir)
         from_where_antecipado = self.parsed.get('FROM_WHERE_ANTECIPADO', None)
         if from_where_antecipado:
