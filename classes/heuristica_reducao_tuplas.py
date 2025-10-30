@@ -71,9 +71,12 @@ class HeuristicaReducaoTuplas:
         parsed_otimizado = {
             'SELECT': select_cols,
             'FROM': from_table,
-            'INNER_JOIN': joins_otimizados,
-            'WHERE': where_atualizado
+            'INNER_JOIN': joins_otimizados
         }
+        
+        # Adiciona WHERE somente se houver condições restantes
+        if where_atualizado:
+            parsed_otimizado['WHERE'] = where_atualizado
         
         # Se a tabela FROM tem condições, adiciona where_antecipado
         if from_table in condicoes_por_tabela:

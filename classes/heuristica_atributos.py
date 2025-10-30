@@ -90,9 +90,12 @@ class HeuristicaReducaoAtributos:
         resultado = {
             'SELECT': select_cols,
             'FROM': from_table,
-            'INNER_JOIN': joins_otimizados,
-            'WHERE': where_clause
+            'INNER_JOIN': joins_otimizados
         }
+        
+        # Adiciona WHERE somente se houver valor
+        if where_clause:
+            resultado['WHERE'] = where_clause
         
         # Preserva FROM_WHERE_ANTECIPADO se existir
         if from_where_antecipado:
